@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+	<style>
+		table {
+			font-family: arial, sans-serif;
+			border-collapse: collapse;
+			width: 100%;
+		}
+
+		td, th {
+			border: 1px solid #dddddd;
+			text-align: left;
+			padding: 8px;
+		}
+
+		tr:nth-child(even) {
+			background-color: #dddddd;
+		}
+	</style>
+</head>
+<body>
+<h1>Carla Eval Setup</h1>
+<p>Please set the following parameters</p>
+<div class="col">
+    <div class="form-group">
+    
+    <form method="POST" action={{url_for('addpath')}}>
+        <input name="text", id='text', placeholder="Path to Params" >
+        <input type="submit" >
+    </form>
+
+    {% if path_added %}
+        <p>{{path}} is now being tracked</p>
+    {% endif %}
+
+    <form method="POST" action={{url_for('list_proc')}}>
+        <input type="submit" value="List Processes">
+    </form>
+
+    {% if listp %}
+        <table style="width:80%">
+			<tbody>
+				<tr><th>Paths to Pickle files</th></tr>
+            	{% for proc in procs %}
+					<tr><td>{{ proc }}</td></tr>
+            	{% endfor %}
+            </tbody>
+        </table>   
+    {% endif %}
+
+
+    <form method="POST" action={{url_for('clear_proc')}}>
+        <input type="submit" value="Clear Processes">
+    </form>
+
+    {% if clear %}
+        <p>Cleared Processes</p>
+    {% endif %}
+
+
+	<form method="POST" action={{url_for('stop_proc')}}>
+        <input type="submit" value="Stop Processes">
+    </form>
+	
+</div>
+</body>
+</html>
