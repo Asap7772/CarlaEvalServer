@@ -27,7 +27,7 @@ def enable_gpus(gpu_str):
     if gpu_str is not "":
         os.environ["CUDA_VISIBLE_DEVICES"] = gpu_str
 
-enable_gpus('2')
+enable_gpus('0,1,2,3')
 ptu.set_gpu_mode(True)
 
 app = Flask(__name__)
@@ -54,6 +54,7 @@ def load_path(path):
         hash_val.add(h)
     
     #load policy
+    # torch.load(param_path,map_location='cuda:0')
     data = pickle.load(open(param_path, 'rb'))
     policy = data['evaluation/policy'].stochastic_policy
     policy.cuda()
@@ -80,6 +81,8 @@ def load_path(path):
         discounted_rewards = discounted_rewards * cum_rewards
         avg_return += np.sum(discounted_rewards)
     out[path].append(avg_return/len(paths))
+
+    
 
 @app.before_first_request
 def activate_job():
@@ -118,9 +121,11 @@ def clear_proc():
 def pickle_return():
     for x in out.keys():
         print(x, out[x])
-    import datetime; d = datetime.datetime.today() 
-    with open(str(d)+'.pickle','wb') as f:
-        pickle.dump(out, f,protocol=pickle.HIGHEST_PROTOCOL)
+    import datetime; d = datetime.datetime.today()
+
+    f = open(str(d)+'.pickle','wb')
+    pickle.dump(out, f)
+    f.close()
 
 
 @app.route('/stop_proc', methods=['GET', 'POST'])
@@ -131,6 +136,8 @@ def stop_proc():
     stop_thread = True
 
     pickle_return()
+
+    import ipdb; ipdb.set_trace()
 
     return render_template('home.html',path_added=False, listp=False, clear=False, stop=True)     
 
