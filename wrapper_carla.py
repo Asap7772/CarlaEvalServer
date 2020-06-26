@@ -36,6 +36,16 @@ env = gym.make('carla-lane-render-v0')
 hash_val = set()
 out=defaultdict(list)
 stop_thread = False
+import datetime; d = datetime.datetime.today()
+pickle_path= 'serv_'+str(d)+'.pickle'
+
+def pickle_return():
+    for x in out.keys():
+        print(x, out[x])
+
+    f = open(pickle_path,'wb')
+    pickle.dump(out, f)
+    f.close()
 
 def load_path(path):
     #check if file exists
@@ -53,9 +63,15 @@ def load_path(path):
             return
         hash_val.add(h)
     
+    env.reset()
+
     #load policy
     # torch.load(param_path,map_location='cuda:0')
     data = pickle.load(open(param_path, 'rb'))
+    e_ex = False
+    if 'epoch' in data:
+        e_ex = True
+        epoch = data['epoch']
     policy = data['evaluation/policy'].stochastic_policy
     policy.cuda()
     policy.eval()
@@ -80,7 +96,11 @@ def load_path(path):
         discounted_rewards = 0.9 ** np.arange(cum_rewards.shape[0])
         discounted_rewards = discounted_rewards * cum_rewards
         avg_return += np.sum(discounted_rewards)
-    out[path].append(avg_return/len(paths))
+    if e_ex:
+        out[path].append((epoch, avg_return/len(paths)))
+    else:
+        out[path].append(avg_return/len(paths))
+        
 
 @app.before_first_request
 def activate_job():
@@ -88,8 +108,17 @@ def activate_job():
         while not stop_thread:
             print('Running carla eval script')
             for path in procs:
-                load_path(path)
-            time.sleep(3) 
+                try:
+                    load_path(path)
+                except Exception as e:
+                    print(str(e))
+                    continue
+            try:
+                pickle_return()
+            except Exception as e:
+                print(str(e))
+                continue
+            time.sleep(0.5)     
     
     thread = threading.Thread(target=run_job)
     thread.start()
@@ -116,16 +145,6 @@ def clear_proc():
     print('Clear Processes')
     return render_template('home.html',path_added=False, listp=False, clear=True, stop=False)     
 
-def pickle_return():
-    for x in out.keys():
-        print(x, out[x])
-    import datetime; d = datetime.datetime.today()
-
-    f = open(str(d)+'.pickle','wb')
-    pickle.dump(out, f)
-    f.close()
-
-
 @app.route('/stop_proc', methods=['GET', 'POST'])
 def stop_proc():
     print('Stopped Process')
@@ -141,5 +160,5 @@ def stop_proc():
     return render_template('home.html',path_added=False, listp=False, clear=False, stop=True)     
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8080)
+    app.run(host='0.0.0.0', port=7772)
 
