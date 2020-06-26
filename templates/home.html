@@ -42,9 +42,15 @@
     {% if listp %}
         <table style="width:80%">
 			<tbody>
-				<tr><th>Paths to Pickle files</th></tr>
-            	{% for proc in procs %}
-					<tr><td>{{ proc }}</td></tr>
+				<tr>
+                    <th>Paths to Pickle files</th>
+                    <th>Average Returns</th>
+                </tr>
+            	{% for i in range(0, size) %}
+					<tr>
+                        <td>{{ procs[i] }}</td>
+                        <td>{{ out[i] }}</td>
+                    </tr>
             	{% endfor %}
             </tbody>
         </table>   

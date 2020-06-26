@@ -82,8 +82,6 @@ def load_path(path):
         avg_return += np.sum(discounted_rewards)
     out[path].append(avg_return/len(paths))
 
-    
-
 @app.before_first_request
 def activate_job():
     def run_job():
@@ -110,7 +108,7 @@ def addpath():
 @app.route('/list_proc', methods=['GET', 'POST'])
 def list_proc():
     print('List Processes', procs)
-    return render_template('home.html', path_added=False,listp=True, clear=False, stop=False, procs=procs)     
+    return render_template('home.html', path_added=False,listp=True, clear=False, stop=False,size=len(procs), procs=procs, out=[out[x] for x in procs])     
 
 @app.route('/clear_proc', methods=['GET', 'POST'])
 def clear_proc():
@@ -132,12 +130,13 @@ def pickle_return():
 def stop_proc():
     print('Stopped Process')
     print(out)
+
+    import ipdb; ipdb.set_trace()
+
     global stop_thread
     stop_thread = True
 
     pickle_return()
-
-    import ipdb; ipdb.set_trace()
 
     return render_template('home.html',path_added=False, listp=False, clear=False, stop=True)     
 
